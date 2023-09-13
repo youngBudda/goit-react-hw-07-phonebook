@@ -1,62 +1,85 @@
-import Filter from './Filter/Filter';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addContact, deleteContact, setFilter } from '../redux/Slice';
-import Form from './Form/Form';
-import ContactList from './ContactList/ContactList';
+import { toast } from 'react-toastify';
+import { setFilter } from 'redux/Slice';
+import {
+  addContactThunk,
+  deleteContactThunk,
+  getContactsThunk,
+} from 'redux/operation';
+import {
+  selectContacts,
+  selectError,
+  selectFilter,
+  selectFilteredContacts,
+  selectLoading,
+} from 'redux/selector';
+
+import Form from '../components/Form/Form';
+import ContactList from '../components/ContactList/ContactList';
+import Section from '../components/Section/Section';
+import Filter from '../components/Filter/Filter';
+import Loader from '../components/Loader/Loader';
+import Notification from './Notification/Notification';
 
 export function App() {
-  // const [contacts, setContacts] = useState(
-  //   () => JSON.parse(localStorage.getItem('contacts')) || []
-  // );
-  const contacts = useSelector(state => state.contacts);
-  // const [filter, setFilter] = useState('');
-  const filter = useSelector(state => state.filter);
+  const items = useSelector(selectContacts);
+  const isLoading = useSelector(selectLoading);
+  const filterValue = useSelector(selectFilter);
+  const error = useSelector(selectError);
 
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   localStorage.setItem('contacts', JSON.stringify(contacts));
-  // }, [contacts]);
+  useEffect(() => {
+    dispatch(getContactsThunk());
+    //     .unwrap().catch((error)=>{
+    // toast.error(error.message);
+    // })
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!error) return;
+    toast.info(error);
+  }, [error]);
 
   const onDeleteContact = id => {
-    // setContacts(prevState => prevState.filter(contact => contact.id !== id));
-    dispatch(deleteContact(id));
+    dispatch(deleteContactThunk(id));
   };
 
   const onAddContact = contactData => {
-    const checkedContact = contacts.find(
-      contact => contactData.name.toLowerCase() === contact.name.toLowerCase()
+    const checkedContact = items.find(
+      contact => contactData.name === contact.name
     );
     if (checkedContact) {
-      alert(`${contactData.name} is already in contacts}`);
+      toast.info(`${contactData.name} is already in your contacts`);
       return;
+    } else {
+      dispatch(addContactThunk(contactData));
     }
-    dispatch(addContact(contactData));
-
-    // const contact = { id: nanoid(), ...contactData };
-    // setContacts(prevState => [contact, ...prevState]);
   };
 
   const onFilter = filterData => {
     dispatch(setFilter(filterData));
   };
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase().trim())
-  );
+  const filteredContacts = useSelector(selectFilteredContacts);
 
   return (
-    <>
+    <Section>
       <h1>
         <span>☎︎ </span>Phonebook
       </h1>
       <Form onAddContact={onAddContact} />
-      <h2 style={{ display: 'flex', justifyContent: 'center' }}>Contacts</h2>
-      <ContactList
-        contacts={filteredContacts}
-        onDeleteContact={onDeleteContact}
-      />
-      <Filter onFilter={onFilter} filter={filter} />
-    </>
+      <h2>Contacts</h2>
+      <Filter onFilter={onFilter} filter={filterValue} />
+      {isLoading && <Loader />}
+      {items.length > 0 && !isLoading && (
+        <ContactList
+          contacts={filteredContacts}
+          onDeleteContact={onDeleteContact}
+        />
+      )}
+      <Notification />
+    </Section>
   );
 }

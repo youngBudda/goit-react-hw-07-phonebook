@@ -1,15 +1,17 @@
-import { StyledContact } from './Contact.styled';
 import PropTypes from 'prop-types';
+import { StyledContact } from './Contact.styled';
 
 const Contact = ({ contactItemData, onDeleteContact }) => {
   return (
     <StyledContact>
-      <p>
-        👤&nbsp;&nbsp;{contactItemData.name}:
-        <span>{contactItemData.number}</span>
-      </p>
+      <a href={`tel:+${contactItemData.number}`}>
+        <p>
+          👤&nbsp;&nbsp;{contactItemData.name}:{' '}
+          <span>{contactItemData.number}</span>
+        </p>
+      </a>
       <button type="button" onClick={() => onDeleteContact(contactItemData.id)}>
-        x
+        ✕
       </button>
     </StyledContact>
   );
