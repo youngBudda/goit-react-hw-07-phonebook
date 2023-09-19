@@ -1,7 +1,7 @@
 import { Comment } from 'react-loader-spinner';
 import { StyledLoader } from './Loader.styled';
 
-const Loader = () => {
+export const Loader = () => {
   return (
     <StyledLoader>
       <Comment
@@ -17,5 +17,3 @@ const Loader = () => {
     </StyledLoader>
   );
 };
-
-export default Loader;
